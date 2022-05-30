@@ -19,14 +19,6 @@ const Register: NextPage = () => {
     display: false
   });
 
-  useEffect(() => {
-    // redirect to home if already logged in
-    const user = localStorage.getItem('user');
-    if (user) {
-        router.push('/');
-    }
-  }, [router]);
-
   const handleSubmit = (e: any) => {
     e.preventDefault();
     
