@@ -25,7 +25,7 @@ const sendNewConfirmationEmail = async (now: Date, user: User) => {
     from: process.env.EMAIL_USER,
     to: user.email,
     subject: 'Email verification:',
-    html: `<p>To verify your account click the link: <a href="http://localhost:3000/api/activateEmail/${user.id}/${newActivateToken}">Verify email</a></p>`,
+    html: `<p>To verify your account click the link: <a href="http://localhost:3001/api/activateEmail/${user.id}/${newActivateToken}">Verify email</a></p>`,
   });
 };
 
@@ -36,11 +36,11 @@ export const register = async (req: Request, res: Response) => {
     password: yup.string().min(8).required(),
   });
 
-  if (!(await schema.isValid(req.body))) return res.status(400).json({ message: 'Validation error.' });
+  if (!(await schema.isValid(req.body))) return res.status(400).json({ error: 'Validation error.' });
   const { name, email, password } = req.body;
 
   if (await prisma.user.findFirst({ where: { email } }))
-    return res.status(400).json({ message: 'E-mail already registered.' });
+    return res.status(400).json({ error: 'E-mail already registered.' });
 
   const activateToken = crypto.randomBytes(20).toString('hex');
   const activateExpires = new Date();
@@ -63,13 +63,17 @@ export const register = async (req: Request, res: Response) => {
     from: process.env.EMAIL_USER,
     to: email,
     subject: 'Email verification:',
-    html: `<p>To verify your account click the link: <a href="http://localhost:3000/api/activateEmail/${user.id}/${activateToken}">Verify email</a></p>`,
+    html: `<p>To verify your account click the link: <a href="http://localhost:3001/api/activateEmail/${user.id}/${activateToken}">Verify email</a></p>`,
   });
 
   user.password = '';
+  const expirationDate = new Date();
+  expirationDate.setSeconds(expirationDate.getSeconds() + TOKEN_EXPIRATION_TIME);
   return res.json({
-    user,
+    username: user.name,
+    email: user.email,
     token: jwt.sign({ id: user.id }, JWT_TOKEN, { expiresIn: TOKEN_EXPIRATION_TIME }),
+    expiration: expirationDate.toISOString(),
   });
 };
 
@@ -100,7 +104,7 @@ export const activateEmail = async (req: Request, res: Response) => {
 
   updatedUser.password = '';
 
-  return res.send(updatedUser);
+  return res.send({ message: 'Activation was a success' });
 };
 
 export const login = async (req: Request, res: Response) => {
@@ -109,21 +113,28 @@ export const login = async (req: Request, res: Response) => {
     password: yup.string().required().min(8),
   });
 
-  if (!(await schema.isValid(req.body))) return res.status(400).json({ message: 'Validation error.' });
+  if (!(await schema.isValid(req.body))) return res.status(400).json({ error: 'Validation error.' });
   const { email, password } = req.body;
 
   const user = await prisma.user.findFirst({ where: { email } });
 
   if (!user || !(await bcrypt.compare(password, user.password)))
-    return res.status(400).json({ message: 'Login failed.' });
+    return res.status(400).json({ error: 'Login failed.' });
 
   if (user.status === 'unverified') {
     const now = new Date();
     if (now > new Date(user.activateExpires)) {
       await sendNewConfirmationEmail(now, user);
     }
-    return res.json({ message: 'Email unverified.' });
+    return res.json({ error: 'Email unverified.' });
   }
   user.password = '';
-  return res.json({ user, token: jwt.sign({ id: user.id }, JWT_TOKEN, { expiresIn: TOKEN_EXPIRATION_TIME }) });
+  const expirationDate = new Date();
+  expirationDate.setSeconds(expirationDate.getSeconds() + TOKEN_EXPIRATION_TIME);
+  return res.json({
+    username: user.name,
+    email: user.email,
+    token: jwt.sign({ id: user.id }, JWT_TOKEN, { expiresIn: TOKEN_EXPIRATION_TIME }),
+    expiration: expirationDate.toISOString(),
+  });
 };
