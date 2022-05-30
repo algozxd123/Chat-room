@@ -1,5 +1,5 @@
 export type MessageType = {
   username: string,
-  message: string,
+  text: string,
   date: string
 }

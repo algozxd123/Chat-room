@@ -5,7 +5,7 @@ import express from 'express';
 dotenv.config();
 
 // the object definition of JwtPayload and the actual return value of jwt.verify are different, creating conflict with typescript
-type JwtObject = {
+export type JwtObject = {
   id: string;
   iat: number;
   exp: number;
@@ -21,7 +21,7 @@ const authMiddleware = (req: express.Request, res: express.Response, next: expre
   const [scheme, token] = authHeader.split(' ');
   if (!/^Bearer$/i.test(scheme)) return res.status(401).json({ message: 'Token malformatted.' });
   const decoded = jwt.verify(token, JWT_TOKEN) as JwtObject;
-  req.body.userId = decoded;
+  req.body.jwtoken = decoded;
   return next();
 };
 

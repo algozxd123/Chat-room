@@ -18,4 +18,13 @@ model User {
   activateExpires DateTime
   passwordResetToken String?
   passwordResetExpires DateTime?
+  Message Message[]
+}
+
+model Message {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now())
+  text String
+  userId String
+  User User @relation(fields: [userId], references: [id])
 }
