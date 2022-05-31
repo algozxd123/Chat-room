@@ -5,11 +5,19 @@ export type UserInfo = {
   expiration: string
 };
 
+export type MessageType = {
+  text: string,
+  createdAt: string,
+  User: {
+    name: string
+  }
+}
+
 export type Error = {
   error: string
 };
 
-export type Data = UserInfo;
+export type Data = UserInfo | MessageType | [MessageType];
 
 export type ApiResponse = Data | Error;
 
@@ -32,5 +40,28 @@ export const isUserInfo = (data: Data): data is UserInfo => {
     return false;
   }else{
     return true;
+  }
+}
+
+export const isMessage = (data: Data): data is MessageType => {
+  let message = data as MessageType;
+
+  if(message.text === undefined ||
+     message.createdAt === undefined ||
+     message.User === undefined ||
+     message.User.name === undefined){
+    return false;
+  }else{
+    return true;
+  }
+}
+
+export const isArrayMessage = (data: Data): data is [MessageType] => {
+  let messageArray = data as [MessageType];
+
+  if(messageArray.every(isMessage)){
+    return true;
+  }else{
+    return false;
   }
 }

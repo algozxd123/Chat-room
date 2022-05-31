@@ -1,11 +1,20 @@
-import { MessageType } from "../types/chat";
+import { useEffect, useRef } from "react";
+import { MessageType } from "../types/api";
 
-const ChatMessage = ({username, text, date}: MessageType) => {
+const ChatMessage = (message: MessageType) => {
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+
+  useEffect(() => {
+    if(messagesEndRef.current !== null){
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
   return (
-    <div>
-      <p className="text-primary text-lg">{username}</p>
-      <p>{text}</p>
-      <div className="flex justify-end"><p className="text-sm mt-2 text-gray-700">{date}</p></div>
+    <div ref={messagesEndRef}>
+      <p className="text-primary text-lg">{message.User.name}</p>
+      <p>{message.text}</p>
+      <div className="flex justify-end"><p className="text-sm mt-2 text-gray-700">{message.createdAt}</p></div>
       <hr className="my-2"/>
     </div>
   );

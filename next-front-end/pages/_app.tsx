@@ -31,13 +31,16 @@ function MyApp({ Component, pageProps }: AppProps) {
       return;
     }
 
-    if(user) setAuthorized(true);
+    if(user) {
+      setAuthorized(true);
+      pageProps.user = user;
+    }
     else {
       setAuthorized(false);
       router.push('/login');
     }
     
-  }, [router]);
+  }, [router, pageProps]);
 
   return <>{authorized && <Component {...pageProps} />}</>
 }
