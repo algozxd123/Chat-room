@@ -6,6 +6,7 @@ export type UserInfo = {
 };
 
 export type MessageType = {
+  id: string,
   text: string,
   createdAt: string,
   User: {

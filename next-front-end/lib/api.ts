@@ -1,4 +1,4 @@
-import { ApiResponse, isArrayMessage, isData, isMessage, isUserInfo, UserInfo } from "../types/api";
+import { ApiResponse, isArrayMessage, isData, isMessage, isUserInfo } from "../types/api";
 
 export async function register(name: string, email: string, password: string){
 

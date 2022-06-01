@@ -1,7 +1,13 @@
 import { useEffect, useRef } from "react";
 import { MessageType } from "../types/api";
 
-const ChatMessage = (message: MessageType) => {
+type Message = {
+  text: string,
+  createdAt: string,
+  name: string
+}
+
+const ChatMessage = ({ text, createdAt, name,}: Message) => {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
   useEffect(() => {
@@ -12,9 +18,9 @@ const ChatMessage = (message: MessageType) => {
 
   return (
     <div ref={messagesEndRef}>
-      <p className="text-primary text-lg">{message.User.name}</p>
-      <p>{message.text}</p>
-      <div className="flex justify-end"><p className="text-sm mt-2 text-gray-700">{message.createdAt}</p></div>
+      <p className="text-primary text-lg">{name}</p>
+      <p>{text}</p>
+      <div className="flex justify-end"><p className="text-sm mt-2 text-gray-700">{new Date(createdAt).toDateString()}</p></div>
       <hr className="my-2"/>
     </div>
   );

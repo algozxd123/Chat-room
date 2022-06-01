@@ -11,7 +11,6 @@ routes.post('/api/login', UserController.login);
 
 routes.use(authMiddleware);
 
-routes.post('/api/message/create', MessageController.create);
 routes.get('/api/message/', MessageController.index);
 
 export default routes;
