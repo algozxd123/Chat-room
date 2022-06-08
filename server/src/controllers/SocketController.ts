@@ -13,11 +13,15 @@ const initialize = (io: Server, socket: Socket) => {
     /^Bearer$/i.test((socket.handshake.query.token as string).split(' ')[0]) &&
     (socket.handshake.query.token as string).split(' ')[1]
   ) {
-    const decoded = jwt.verify((socket.handshake.query.token as string).split(' ')[1], JWT_TOKEN) as JwtObject;
-    if (decoded.id) {
-      socket.on('send_message', ({ text }) => {
-        MessageController.create(io, socket, text, decoded.id);
-      });
+    try {
+      const decoded = jwt.verify((socket.handshake.query.token as string).split(' ')[1], JWT_TOKEN) as JwtObject;
+      if (decoded.id) {
+        socket.on('send_message', ({ text }) => {
+          MessageController.create(io, socket, text, decoded.id);
+        });
+      }
+    } catch (error: any) {
+      console.log(error.name);
     }
   }
 };
