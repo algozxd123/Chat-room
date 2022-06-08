@@ -16,4 +16,5 @@ module.exports = {
     'src/(.*)': '<rootDir>/src/$1',
   },
   moduleDirectories: ['node_modules', 'src'],
+  coveragePathIgnorePatterns: ['<rootDir>/src/index.ts', '<rootDir>/src/environment.d.ts'],
 };

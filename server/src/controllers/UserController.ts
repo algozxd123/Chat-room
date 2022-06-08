@@ -1,17 +1,16 @@
-import { PrismaClient, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { Request, Response } from 'express';
 import * as yup from 'yup';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import mailer from '@src/libs/mailer';
+import prisma from '@src/libs/prisma';
 
+const TOKEN_EXPIRATION_TIME = (process.env.TOKEN_EXPIRATION_TIME as unknown as number) ?? 604800;
 const JWT_TOKEN = process.env.TOKEN_SECRET ?? '';
 
-const TOKEN_EXPIRATION_TIME = 604800;
-const prisma = new PrismaClient();
-
-const sendNewConfirmationEmail = async (now: Date, user: User) => {
+export const sendNewConfirmationEmail = async (now: Date, user: User) => {
   const newActivateToken = crypto.randomBytes(20).toString('hex');
   const activateExpires = now;
   activateExpires.setHours(user.activateExpires.getHours() + 1);
@@ -38,7 +37,6 @@ export const register = async (req: Request, res: Response) => {
 
   if (!(await schema.isValid(req.body))) return res.status(400).json({ error: 'Validation error.' });
   const { name, email, password } = req.body;
-
   if (await prisma.user.findFirst({ where: { email } }))
     return res.status(400).json({ error: 'E-mail already registered.' });
 
@@ -47,7 +45,6 @@ export const register = async (req: Request, res: Response) => {
   activateExpires.setHours(activateExpires.getHours() + 1);
 
   const hash = bcrypt.hashSync(password, process.env.TOKEN_SECRET);
-
   const user = await prisma.user.create({
     data: {
       status: 'unverified',
@@ -58,17 +55,16 @@ export const register = async (req: Request, res: Response) => {
       activateExpires,
     },
   });
-
-  mailer.sendMail({
+  await mailer.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
     subject: 'Email verification:',
     html: `<p>To verify your account click the link: <a href="http://localhost:3001/api/activateEmail/${user.id}/${activateToken}">Verify email</a></p>`,
   });
-
   user.password = '';
   const expirationDate = new Date();
   expirationDate.setSeconds(expirationDate.getSeconds() + TOKEN_EXPIRATION_TIME);
+
   return res.json({
     username: user.name,
     email: user.email,
@@ -83,13 +79,13 @@ export const activateEmail = async (req: Request, res: Response) => {
     activateToken: yup.string().required(),
   });
 
-  if (!(await schema.isValid(req.params))) return res.status(400).json({ message: 'Validation error.' });
+  if (!(await schema.isValid(req.params))) return res.status(400).json({ error: 'Validation error.' });
   const { userId, activateToken } = req.params;
   const user = await prisma.user.findFirst({ where: { id: userId } });
 
-  if (!user) return res.status(400).json({ message: 'User not found.' });
-  if (user.status !== 'unverified') return res.status(400).json({ message: 'The account is activated.' });
-  if (activateToken !== user.activateToken) return res.status(400).json({ message: 'Token invalid.' });
+  if (!user) return res.status(400).json({ error: 'User not found.' });
+  if (user.status !== 'unverified') return res.status(400).json({ error: 'The account is activated.' });
+  if (activateToken !== user.activateToken) return res.status(400).json({ error: 'Token invalid.' });
 
   const now = new Date();
   if (now > new Date(user.activateExpires)) {

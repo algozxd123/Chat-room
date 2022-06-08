@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { Server, Socket } from 'socket.io';
-
-const prisma = new PrismaClient();
+import prisma from '@src/libs/prisma';
 
 export const create = async (io: Server, socket: Socket, text: string, userId: string) => {
   const user = await prisma.user.findFirst({ where: { id: userId } });

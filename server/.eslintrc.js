@@ -38,6 +38,14 @@ module.exports = {
         ],
       },
     ],
+    'import/extensions': [
+      'error',
+      'ignorePackages',
+      {
+        js: 'never',
+        ts: 'never',
+      },
+    ],
   },
   settings: {
     'import/parses': {
